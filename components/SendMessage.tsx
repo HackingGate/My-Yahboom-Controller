@@ -6,13 +6,18 @@ import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { Button, TextInput, StyleSheet } from "react-native";
 
+interface ErrorType {
+  isTrusted: boolean;
+  message: string;
+}
+
 function SendMessage() {
   const [status, setStatus] = useState("Not connected");
   const [linear, setLinear] = useState({ x: 0, y: 0, z: 0 });
   const [angular, setAngular] = useState({ x: 0, y: 0, z: 0 });
   const ros = new ROSLIB.Ros({ encoding: "ascii" });
 
-  function convert(input: any) {
+  function convert(input: string) {
     if (input.charAt(0) === "-") {
       let x = input.slice(0);
       return parseInt(x);
@@ -24,9 +29,9 @@ function SendMessage() {
   function connect() {
     ros.connect("ws://localhost:9090");
     // won't let the user connect more than once
-    ros.on("error", function (error: any) {
+    ros.on("error", function (error: ErrorType) {
       console.log(error);
-      setStatus(error);
+      setStatus(error.message);
     });
 
     // Find out exactly when we made a connection.
