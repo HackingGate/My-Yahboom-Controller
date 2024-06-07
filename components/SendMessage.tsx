@@ -16,7 +16,7 @@ function SendMessage() {
   const ros = new ROSLIB.Ros({ encoding: "ascii" });
 
   function connect() {
-    ros.connect("ws://localhost:9090");
+    ros.connect("ws://microros-pi5:9090");
     // won't let the user connect more than once
     ros.on("error", function (error: ErrorType) {
       console.log(error);
@@ -27,6 +27,10 @@ function SendMessage() {
     ros.on("connection", function () {
       console.log("Connected!");
       setStatus("Connected!");
+
+      ros.getTopics(function (topics: any) {
+        console.log(topics);
+      });
     });
 
     ros.on("close", function () {
