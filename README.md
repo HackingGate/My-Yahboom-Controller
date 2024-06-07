@@ -1,6 +1,6 @@
 # roslibjs-react-native-demo
 
-A React Native Expo example domonstrating how to use [roslibjs](https://wiki.ros.org/roslibjs).
+A React Native Expo example demonstrating how to use [roslibjs](https://wiki.ros.org/roslibjs).
 
 ## Screenshot
 
