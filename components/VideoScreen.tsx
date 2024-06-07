@@ -94,8 +94,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   video: {
-    width: 350,
-    height: 275,
+    width: "100%",
+    height: "100%",
   },
   placeholder: {
     width: 350,

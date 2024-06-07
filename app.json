@@ -3,7 +3,7 @@
     "name": "roslibjs-react-native-demo",
     "slug": "roslibjs-react-native-demo",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "landscape",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
