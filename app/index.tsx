@@ -1,20 +1,19 @@
 import { StyleSheet } from "react-native";
-
-import { ThemedText } from "@/components/ThemedText";
+import SendMessage from "@/components/SendMessage";
 import { ThemedView } from "@/components/ThemedView";
 
 export default function MainScreen() {
   return (
-    <ThemedView style={styles.centerContainer}>
-      <ThemedText>Hello World!</ThemedText>
+    <ThemedView style={styles.container}>
+      <SendMessage />
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  centerContainer: {
-    alignItems: "center",
-    justifyContent: "center",
+  container: {
     flex: 1,
+    paddingVertical: 80,
+    paddingHorizontal: 10,
   },
 });
