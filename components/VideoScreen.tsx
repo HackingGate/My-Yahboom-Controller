@@ -2,8 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, View, Button, Image } from "react-native";
 // @ts-ignore
 import ROSLIB from "roslib";
-
-const ROS_URL = "ws://microros-pi5:9090"; // Update with your ROS WebSocket URL
+import { ROS_URL } from "@/config";
 
 export default function VideoScreen() {
   const [status, setStatus] = useState("Not connected");

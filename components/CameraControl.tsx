@@ -8,8 +8,7 @@ import {
   CameraServoPosition,
   CameraServoConstrains,
 } from "@/components/common_control";
-
-const ROS_URL = "ws://microros-pi5:9090"; // Update with your ROS WebSocket URL
+import { ROS_URL } from "@/config";
 
 function CameraControl() {
   const rosRef = useRef<ROSLIB.Ros | null>(null);
