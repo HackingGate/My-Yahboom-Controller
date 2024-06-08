@@ -9,6 +9,7 @@ export default function VideoScreen() {
   const [imageData, setImageData] = useState<string | null>(null);
   const rosRef = useRef<ROSLIB.Ros | null>(null);
   const topicRef = useRef<ROSLIB.Topic | null>(null);
+  const lastFrameTimeRef = useRef<number>(0);
 
   useEffect(() => {
     const ros = new ROSLIB.Ros();
@@ -25,8 +26,12 @@ export default function VideoScreen() {
       });
 
       topic.subscribe((message: any) => {
-        const imageData = "data:image/jpeg;base64," + message.data;
-        setImageData(imageData);
+        const currentTime = Date.now();
+        if (currentTime > lastFrameTimeRef.current) {
+          lastFrameTimeRef.current = currentTime;
+          const imageData = "data:image/jpeg;base64," + message.data;
+          setImageData(imageData);
+        }
       });
 
       topicRef.current = topic;
