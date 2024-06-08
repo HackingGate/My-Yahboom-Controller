@@ -2,68 +2,14 @@ import React, { useEffect, useRef, useCallback } from "react";
 import { ReactNativeJoystick } from "@korsolutions/react-native-joystick";
 // @ts-ignore
 import ROSLIB from "roslib";
+import {
+  JoystickConstrains,
+  MoveJoystickEvent,
+  CameraServoPosition,
+  CameraServoConstrains,
+} from "@/components/common_control";
 
 const ROS_URL = "ws://microros-pi5:9090"; // Update with your ROS WebSocket URL
-
-type MoveJoystickEvent = {
-  type: "move" | "stop" | "start";
-  position: {
-    x: number;
-    y: number;
-  };
-  force: number;
-  angle: {
-    radian: number;
-    degree: number;
-  };
-};
-
-type Position = {
-  x: number;
-  y: number;
-};
-
-const ServoConstrains = {
-  servo_s1: {
-    def_angle: 0,
-    min_angle: -90,
-    max_angle: 90,
-    range: function () {
-      return this.max_angle - this.min_angle;
-    },
-  },
-  servo_s2: {
-    def_angle: -60,
-    min_angle: -140,
-    max_angle: 20,
-    range: function () {
-      return this.max_angle - this.min_angle;
-    },
-  },
-};
-
-const JoystickConstrains = {
-  radius: 112.5,
-  def_radius: 75, // Do not change
-  max_left: function () {
-    return (this.radius / this.def_radius) * -25;
-  },
-  max_right: function () {
-    return (this.radius / this.def_radius) * 125;
-  },
-  x_range: function () {
-    return this.max_right() - this.max_left();
-  },
-  max_down: function () {
-    return (this.radius / this.def_radius) * -25;
-  },
-  max_up: function () {
-    return (this.radius / this.def_radius) * 125;
-  },
-  y_range: function () {
-    return this.max_up() - this.max_down();
-  },
-};
 
 function CameraControl() {
   const rosRef = useRef<ROSLIB.Ros | null>(null);
@@ -114,13 +60,17 @@ function CameraControl() {
   const handleMove = useCallback((data: MoveJoystickEvent) => {
     let x = data.position.x;
     x = x - JoystickConstrains.max_left();
-    x = (x * ServoConstrains.servo_s1.range()) / JoystickConstrains.x_range();
-    x = x + ServoConstrains.servo_s1.min_angle;
+    x =
+      (x * CameraServoConstrains.servo_s1.range()) /
+      JoystickConstrains.x_range();
+    x = x + CameraServoConstrains.servo_s1.min_angle;
 
     let y = data.position.y;
     y = y - JoystickConstrains.max_down();
-    y = (y * ServoConstrains.servo_s2.range()) / JoystickConstrains.y_range();
-    y = y + ServoConstrains.servo_s2.min_angle;
+    y =
+      (y * CameraServoConstrains.servo_s2.range()) /
+      JoystickConstrains.y_range();
+    y = y + CameraServoConstrains.servo_s2.min_angle;
     if (y < -90) {
       y = -90;
     }
@@ -130,19 +80,19 @@ function CameraControl() {
 
   const handleStop = useCallback((data: MoveJoystickEvent) => {
     handleJoystick({
-      x: data.position.x + ServoConstrains.servo_s1.def_angle,
-      y: data.position.y + ServoConstrains.servo_s2.def_angle,
+      x: data.position.x + CameraServoConstrains.servo_s1.def_angle,
+      y: data.position.y + CameraServoConstrains.servo_s2.def_angle,
     });
   }, []);
 
-  const handleJoystick = useCallback((data: Position) => {
+  const handleJoystick = useCallback((data: CameraServoPosition) => {
     if (!servoS1TopicRef.current || !servoS2TopicRef.current) {
       console.log("ROS is not connected.");
       return;
     }
 
     const servoS1Message = new ROSLIB.Message({
-      data: Math.round(data.x + ServoConstrains.servo_s1.def_angle),
+      data: Math.round(data.x + CameraServoConstrains.servo_s1.def_angle),
     });
     servoS1TopicRef.current.publish(servoS1Message);
 
