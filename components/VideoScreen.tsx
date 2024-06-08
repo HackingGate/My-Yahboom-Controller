@@ -2,14 +2,14 @@ import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, View, Button, Image } from "react-native";
 // @ts-ignore
 import ROSLIB from "roslib";
-
-const ROS_URL = "ws://microros-pi5:9090"; // Update with your ROS WebSocket URL
+import { ROS_URL } from "@/config";
 
 export default function VideoScreen() {
   const [status, setStatus] = useState("Not connected");
   const [imageData, setImageData] = useState<string | null>(null);
   const rosRef = useRef<ROSLIB.Ros | null>(null);
   const topicRef = useRef<ROSLIB.Topic | null>(null);
+  const lastFrameTimeRef = useRef<number>(0);
 
   useEffect(() => {
     const ros = new ROSLIB.Ros();
@@ -26,8 +26,12 @@ export default function VideoScreen() {
       });
 
       topic.subscribe((message: any) => {
-        const imageData = "data:image/jpeg;base64," + message.data;
-        setImageData(imageData);
+        const currentTime = Date.now();
+        if (currentTime > lastFrameTimeRef.current) {
+          lastFrameTimeRef.current = currentTime;
+          const imageData = "data:image/jpeg;base64," + message.data;
+          setImageData(imageData);
+        }
       });
 
       topicRef.current = topic;
