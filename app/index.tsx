@@ -2,6 +2,7 @@ import { StyleSheet, View } from "react-native";
 import VideoScreen from "@/components/VideoScreen";
 import { ThemedView } from "@/components/ThemedView";
 import CameraControl from "@/components/CameraControl";
+import SpeedControl from "@/components/SpeedControl";
 
 export default function MainScreen() {
   return (
@@ -11,7 +12,7 @@ export default function MainScreen() {
         <CameraControl />
       </View>
       <View style={styles.speedControl}>
-        <CameraControl />
+        <SpeedControl />
       </View>
     </ThemedView>
   );

@@ -35,6 +35,11 @@ export const CameraServoConstrains = {
   },
 };
 
+export const SpeedConstrains = {
+  max_speed: 1.0, // Maximum linear speed
+  max_angular_speed: 3, // Maximum angular speed
+};
+
 export const JoystickConstrains = {
   radius: 112.5,
   def_radius: 75, // Do not change
