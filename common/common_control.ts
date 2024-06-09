@@ -37,7 +37,7 @@ export const CameraServoConstrains = {
 
 export const SpeedConstrains = {
   max_speed: 1.0, // Maximum linear speed
-  max_angular_speed: 1.0, // Maximum angular speed
+  max_angular_speed: 2.0, // Maximum angular speed
 };
 
 export const JoystickConstrains = {
