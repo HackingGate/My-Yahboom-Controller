@@ -7,13 +7,14 @@ import {
   MoveJoystickEvent,
   CameraServoPosition,
   CameraServoConstrains,
-} from "@/components/common_control";
-import { ROS_URL } from "@/config";
+} from "@/common/common_control";
+import { useRos } from "@/context/RosContext";
 
 function CameraControl() {
   const rosRef = useRef<ROSLIB.Ros | null>(null);
   const servoS1TopicRef = useRef<ROSLIB.Topic | null>(null);
   const servoS2TopicRef = useRef<ROSLIB.Topic | null>(null);
+  const { rosUrl } = useRos(); // Use the ROS URL from context
 
   useEffect(() => {
     const ros = new ROSLIB.Ros();
@@ -46,7 +47,7 @@ function CameraControl() {
       console.log("Connection to ROS closed.");
     });
 
-    ros.connect(ROS_URL);
+    ros.connect(rosUrl);
     rosRef.current = ros;
 
     return () => {
@@ -54,7 +55,7 @@ function CameraControl() {
         rosRef.current.close();
       }
     };
-  }, []);
+  }, [rosUrl]);
 
   const handleMove = useCallback((data: MoveJoystickEvent) => {
     let x = data.position.x;

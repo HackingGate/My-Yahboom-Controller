@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, View, Button, Image } from "react-native";
 // @ts-ignore
 import ROSLIB from "roslib";
-import { ROS_URL } from "@/config";
+import { ThemedTextInput } from "@/components/ThemedTextInput";
+import { useRos } from "@/context/RosContext";
 
 export default function VideoScreen() {
   const [status, setStatus] = useState("Not connected");
@@ -10,6 +11,7 @@ export default function VideoScreen() {
   const rosRef = useRef<ROSLIB.Ros | null>(null);
   const topicRef = useRef<ROSLIB.Topic | null>(null);
   const lastFrameTimeRef = useRef<number>(0);
+  const { rosUrl, setRosUrl } = useRos(); // Use the ROS URL from context
 
   useEffect(() => {
     const ros = new ROSLIB.Ros();
@@ -47,7 +49,7 @@ export default function VideoScreen() {
       setStatus("Disconnected");
     });
 
-    ros.connect(ROS_URL);
+    ros.connect(rosUrl);
 
     return () => {
       if (topicRef.current) {
@@ -57,7 +59,7 @@ export default function VideoScreen() {
         rosRef.current.close();
       }
     };
-  }, []);
+  }, [rosUrl]);
 
   return (
     <View style={styles.contentContainer}>
@@ -69,11 +71,16 @@ export default function VideoScreen() {
         />
       ) : (
         <View style={styles.placeholder}>
+          <ThemedTextInput
+            style={styles.textInput}
+            value={rosUrl}
+            onChangeText={setRosUrl}
+          />
           <Button
             title="Connect"
             onPress={() => {
               if (rosRef.current && status !== "Connected") {
-                rosRef.current.connect(ROS_URL);
+                rosRef.current.connect(rosUrl);
               }
             }}
           />
@@ -106,5 +113,8 @@ const styles = StyleSheet.create({
     height: 275,
     justifyContent: "center",
     alignItems: "center",
+  },
+  textInput: {
+    padding: 10,
   },
 });

@@ -3,18 +3,21 @@ import VideoScreen from "@/components/VideoScreen";
 import { ThemedView } from "@/components/ThemedView";
 import CameraControl from "@/components/CameraControl";
 import SpeedControl from "@/components/SpeedControl";
+import { RosProvider } from "@/context/RosContext";
 
 export default function MainScreen() {
   return (
-    <ThemedView style={styles.container}>
-      <VideoScreen />
-      <View style={styles.cameraControl}>
-        <CameraControl />
-      </View>
-      <View style={styles.speedControl}>
-        <SpeedControl />
-      </View>
-    </ThemedView>
+    <RosProvider>
+      <ThemedView style={styles.container}>
+        <VideoScreen />
+        <View style={styles.cameraControl}>
+          <CameraControl />
+        </View>
+        <View style={styles.speedControl}>
+          <SpeedControl />
+        </View>
+      </ThemedView>
+    </RosProvider>
   );
 }
 
