@@ -1,4 +1,10 @@
 import React, { useEffect, useRef, useCallback } from "react";
+import { View } from "react-native";
+import {
+  PanGestureHandler,
+  State,
+  GestureHandlerStateChangeEvent,
+} from "react-native-gesture-handler";
 import { ReactNativeJoystick } from "@korsolutions/react-native-joystick";
 // @ts-ignore
 import ROSLIB from "roslib";
@@ -12,6 +18,7 @@ import { useRos } from "@/context/RosContext";
 function SpeedControl() {
   const rosRef = useRef<ROSLIB.Ros | null>(null);
   const speedTopicRef = useRef<ROSLIB.Topic | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { rosUrl } = useRos(); // Use the ROS URL from context
 
   useEffect(() => {
@@ -48,6 +55,17 @@ function SpeedControl() {
     };
   }, [rosUrl]);
 
+  const resetToZero = useCallback(() => {
+    handleJoystick({ linear: 0, angular: 0 });
+  }, []);
+
+  const startResetTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    timerRef.current = setTimeout(resetToZero, 100);
+  }, [resetToZero]);
+
   const handleMove = useCallback((data: MoveJoystickEvent) => {
     let y = data.position.y;
     y = y - JoystickConstrains.max_down();
@@ -62,10 +80,9 @@ function SpeedControl() {
       (JoystickConstrains.x_range() / 2);
 
     handleJoystick({ linear: y, angular: -x });
-  }, []);
-
-  const handleStop = useCallback(() => {
-    handleJoystick({ linear: 0, angular: 0 });
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
   }, []);
 
   const handleJoystick = useCallback(
@@ -89,13 +106,31 @@ function SpeedControl() {
     [],
   );
 
+  const onGestureEvent = useCallback(
+    ({ nativeEvent }: GestureHandlerStateChangeEvent) => {
+      const { state } = nativeEvent;
+
+      if (
+        state === State.END ||
+        state === State.FAILED ||
+        state === State.CANCELLED
+      ) {
+        startResetTimer();
+      }
+    },
+    [startResetTimer],
+  );
+
   return (
-    <ReactNativeJoystick
-      color="#06b6d4"
-      radius={JoystickConstrains.radius}
-      onMove={handleMove}
-      onStop={handleStop}
-    />
+    <PanGestureHandler onHandlerStateChange={onGestureEvent}>
+      <View>
+        <ReactNativeJoystick
+          color="#06b6d4"
+          radius={JoystickConstrains.radius}
+          onMove={handleMove}
+        />
+      </View>
+    </PanGestureHandler>
   );
 }
 
