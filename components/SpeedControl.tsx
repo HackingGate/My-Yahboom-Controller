@@ -63,7 +63,7 @@ function SpeedControl() {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
-    timerRef.current = setTimeout(resetToZero, 100);
+    timerRef.current = setTimeout(resetToZero, 500);
   }, [resetToZero]);
 
   const handleMove = useCallback((data: MoveJoystickEvent) => {

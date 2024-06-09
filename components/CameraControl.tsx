@@ -75,7 +75,7 @@ function CameraControl() {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
     }
-    timerRef.current = setTimeout(resetToDefault, 100);
+    timerRef.current = setTimeout(resetToDefault, 500);
   }, [resetToDefault]);
 
   const handleMove = useCallback((data: MoveJoystickEvent) => {
