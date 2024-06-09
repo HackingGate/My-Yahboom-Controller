@@ -1,4 +1,10 @@
 import React, { useEffect, useRef, useCallback } from "react";
+import { View } from "react-native";
+import {
+  PanGestureHandler,
+  State,
+  GestureHandlerStateChangeEvent,
+} from "react-native-gesture-handler";
 import { ReactNativeJoystick } from "@korsolutions/react-native-joystick";
 // @ts-ignore
 import ROSLIB from "roslib";
@@ -14,6 +20,7 @@ function CameraControl() {
   const rosRef = useRef<ROSLIB.Ros | null>(null);
   const servoS1TopicRef = useRef<ROSLIB.Topic | null>(null);
   const servoS2TopicRef = useRef<ROSLIB.Topic | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { rosUrl } = useRos(); // Use the ROS URL from context
 
   useEffect(() => {
@@ -57,6 +64,20 @@ function CameraControl() {
     };
   }, [rosUrl]);
 
+  const resetToDefault = useCallback(() => {
+    handleJoystick({
+      x: CameraServoConstrains.servo_s1.def_angle,
+      y: CameraServoConstrains.servo_s2.def_angle,
+    });
+  }, []);
+
+  const startResetTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    timerRef.current = setTimeout(resetToDefault, 100);
+  }, [resetToDefault]);
+
   const handleMove = useCallback((data: MoveJoystickEvent) => {
     let x = data.position.x;
     x = x - JoystickConstrains.max_left();
@@ -76,6 +97,9 @@ function CameraControl() {
     }
 
     handleJoystick({ x: x, y: y });
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
   }, []);
 
   const handleStop = useCallback((data: MoveJoystickEvent) => {
@@ -83,6 +107,9 @@ function CameraControl() {
       x: data.position.x + CameraServoConstrains.servo_s1.def_angle,
       y: data.position.y + CameraServoConstrains.servo_s2.def_angle,
     });
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
   }, []);
 
   const handleJoystick = useCallback((data: CameraServoPosition) => {
@@ -105,13 +132,32 @@ function CameraControl() {
     console.log(`Published to /servo_s2: ${servoS2Message.data}`);
   }, []);
 
+  const onGestureEvent = useCallback(
+    ({ nativeEvent }: GestureHandlerStateChangeEvent) => {
+      const { state } = nativeEvent;
+
+      if (
+        state === State.END ||
+        state === State.FAILED ||
+        state === State.CANCELLED
+      ) {
+        startResetTimer();
+      }
+    },
+    [startResetTimer],
+  );
+
   return (
-    <ReactNativeJoystick
-      color="#06b6d4"
-      radius={JoystickConstrains.radius}
-      onMove={handleMove}
-      onStop={handleStop}
-    />
+    <PanGestureHandler onHandlerStateChange={onGestureEvent}>
+      <View style={{ flex: 1 }}>
+        <ReactNativeJoystick
+          color="#06b6d4"
+          radius={JoystickConstrains.radius}
+          onMove={handleMove}
+          onStop={handleStop}
+        />
+      </View>
+    </PanGestureHandler>
   );
 }
 
