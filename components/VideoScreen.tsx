@@ -4,6 +4,7 @@ import { StyleSheet, View, Button, Image } from "react-native";
 import ROSLIB from "roslib";
 import { ThemedTextInput } from "@/components/ThemedTextInput";
 import { useRos } from "@/context/RosContext";
+import { VIDEO_FRAME_RATE_MS } from "@/config";
 
 export default function VideoScreen() {
   const [status, setStatus] = useState("Not connected");
@@ -25,11 +26,12 @@ export default function VideoScreen() {
         ros,
         name: "/usb_cam/image_raw/compressed",
         messageType: "sensor_msgs/CompressedImage",
+        throttle_rate: VIDEO_FRAME_RATE_MS,
       });
 
       topic.subscribe((message: any) => {
         const currentTime = Date.now();
-        if (currentTime > lastFrameTimeRef.current) {
+        if (currentTime - lastFrameTimeRef.current > VIDEO_FRAME_RATE_MS) {
           lastFrameTimeRef.current = currentTime;
           const imageData = "data:image/jpeg;base64," + message.data;
           setImageData(imageData);
