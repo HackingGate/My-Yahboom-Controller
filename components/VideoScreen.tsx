@@ -24,7 +24,7 @@ export default function VideoScreen() {
 
       const topic = new ROSLIB.Topic({
         ros,
-        name: "/usb_cam/image_raw/compressed",
+        name: "/compressed_video",
         messageType: "sensor_msgs/CompressedImage",
         throttle_rate: VIDEO_FRAME_RATE_MS,
       });
@@ -33,7 +33,7 @@ export default function VideoScreen() {
         const currentTime = Date.now();
         if (currentTime - lastFrameTimeRef.current > VIDEO_FRAME_RATE_MS) {
           lastFrameTimeRef.current = currentTime;
-          const imageData = "data:image/jpeg;base64," + message.data;
+          const imageData = "data:image/webp;base64," + message.data;
           setImageData(imageData);
         }
       });
