@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useCallback } from "react";
-import { View, Text } from "react-native";
+import React, { useEffect, useRef, useCallback, useState } from "react";
+import { View, Text, StyleSheet } from "react-native";
 import {
   TapGestureHandler,
   State,
@@ -13,6 +13,7 @@ function BeepControl() {
   const rosRef = useRef<ROSLIB.Ros | null>(null);
   const beepTopicRef = useRef<ROSLIB.Topic | null>(null);
   const { rosUrl } = useRos(); // Use the ROS URL from context
+  const [isPressed, setIsPressed] = useState(false); // State to track button press
 
   useEffect(() => {
     const ros = new ROSLIB.Ros();
@@ -65,12 +66,14 @@ function BeepControl() {
   const onHandlerStateChange = useCallback(
     ({ nativeEvent }: GestureHandlerStateChangeEvent) => {
       if (nativeEvent.state === State.BEGAN) {
+        setIsPressed(true);
         handleBeep(1);
       } else if (
         nativeEvent.state === State.END ||
         nativeEvent.state === State.CANCELLED ||
         nativeEvent.state === State.FAILED
       ) {
+        setIsPressed(false);
         handleBeep(0);
       }
     },
@@ -78,14 +81,37 @@ function BeepControl() {
   );
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+    <View style={styles.container}>
       <TapGestureHandler onHandlerStateChange={onHandlerStateChange}>
-        <View style={{ padding: 20, backgroundColor: "blue" }}>
-          <Text style={{ color: "white" }}>Beep</Text>
+        <View style={[styles.button, isPressed && styles.buttonPressed]}>
+          <Text style={styles.buttonText}>Beep</Text>
         </View>
       </TapGestureHandler>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  button: {
+    padding: 20,
+    backgroundColor: "blue",
+    borderRadius: 10,
+    elevation: 3,
+  },
+  buttonPressed: {
+    backgroundColor: "darkblue",
+    elevation: 0,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 18,
+    textAlign: "center",
+  },
+});
 
 export default BeepControl;
