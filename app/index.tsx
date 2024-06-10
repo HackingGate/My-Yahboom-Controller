@@ -4,6 +4,7 @@ import { ThemedView } from "@/components/ThemedView";
 import CameraControl from "@/components/CameraControl";
 import SpeedControl from "@/components/SpeedControl";
 import { RosProvider } from "@/context/RosContext";
+import BeepControl from "@/components/BeepControl";
 
 export default function MainScreen() {
   return (
@@ -15,6 +16,9 @@ export default function MainScreen() {
         </View>
         <View style={styles.speedControl}>
           <SpeedControl />
+        </View>
+        <View style={styles.beepControl}>
+          <BeepControl />
         </View>
       </ThemedView>
     </RosProvider>
@@ -44,5 +48,11 @@ const styles = StyleSheet.create({
     bottom: 10,
     justifyContent: "center",
     alignItems: "center",
+  },
+  beepControl: {
+    opacity: 0.5,
+    position: "absolute",
+    alignSelf: "center",
+    bottom: 100,
   },
 });
