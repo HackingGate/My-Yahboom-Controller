@@ -24,7 +24,7 @@ export default function VideoScreen() {
 
       const topic = new ROSLIB.Topic({
         ros,
-        name: "/compressed_video",
+        name: "/compressed_video/webp",
         messageType: "sensor_msgs/CompressedImage",
         throttle_rate: VIDEO_FRAME_RATE_MS,
       });
