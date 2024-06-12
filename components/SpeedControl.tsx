@@ -9,6 +9,7 @@ import { ReactNativeJoystick } from "@korsolutions/react-native-joystick";
 // @ts-ignore
 import ROSLIB from "roslib";
 import {
+  CameraServoConstrains,
   JoystickConstrains,
   MoveJoystickEvent,
   SpeedConstrains,
@@ -85,6 +86,13 @@ function SpeedControl() {
     }
   }, []);
 
+  const handleStop = useCallback((data: MoveJoystickEvent) => {
+    handleJoystick({ linear: 0, angular: 0 });
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+  }, []);
+
   const handleJoystick = useCallback(
     (data: { linear: number; angular: number }) => {
       if (!speedTopicRef.current) {
@@ -128,6 +136,7 @@ function SpeedControl() {
           color="#06b6d4"
           radius={JoystickConstrains.radius}
           onMove={handleMove}
+          onStop={handleStop}
         />
       </View>
     </PanGestureHandler>
