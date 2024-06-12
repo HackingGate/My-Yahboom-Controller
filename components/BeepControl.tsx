@@ -8,10 +8,12 @@ import {
 // @ts-ignore
 import ROSLIB from "roslib";
 import { useRos } from "@/context/RosContext";
+import { RESET_INTERVAL_MS } from "@/config";
 
 function BeepControl() {
   const rosRef = useRef<ROSLIB.Ros | null>(null);
   const beepTopicRef = useRef<ROSLIB.Topic | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const { rosUrl } = useRos(); // Use the ROS URL from context
   const [isPressed, setIsPressed] = useState(false); // State to track button press
 
@@ -63,10 +65,24 @@ function BeepControl() {
     console.log(`Published to /beep: ${beepMessage.data}`);
   }, []);
 
+  const startResetInterval = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    intervalRef.current = setInterval(() => handleBeep(0), RESET_INTERVAL_MS);
+  }, [handleBeep]);
+
+  const stopResetInterval = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+  }, []);
+
   const onHandlerStateChange = useCallback(
     ({ nativeEvent }: GestureHandlerStateChangeEvent) => {
       if (nativeEvent.state === State.BEGAN) {
         setIsPressed(true);
+        stopResetInterval();
         handleBeep(1);
       } else if (
         nativeEvent.state === State.END ||
@@ -74,10 +90,11 @@ function BeepControl() {
         nativeEvent.state === State.FAILED
       ) {
         setIsPressed(false);
+        startResetInterval();
         handleBeep(0);
       }
     },
-    [handleBeep],
+    [handleBeep, startResetInterval, stopResetInterval],
   );
 
   return (
