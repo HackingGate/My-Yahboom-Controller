@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useCallback, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import {
-  TapGestureHandler,
+  LongPressGestureHandler,
   State,
   GestureHandlerStateChangeEvent,
 } from "react-native-gesture-handler";
@@ -99,11 +99,11 @@ function BeepControl() {
 
   return (
     <View style={styles.container}>
-      <TapGestureHandler onHandlerStateChange={onHandlerStateChange}>
+      <LongPressGestureHandler onHandlerStateChange={onHandlerStateChange}>
         <View style={[styles.button, isPressed && styles.buttonPressed]}>
           <Text style={styles.buttonText}>Beep</Text>
         </View>
-      </TapGestureHandler>
+      </LongPressGestureHandler>
     </View>
   );
 }
