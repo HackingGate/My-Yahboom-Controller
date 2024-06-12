@@ -9,17 +9,17 @@ import { ReactNativeJoystick } from "@korsolutions/react-native-joystick";
 // @ts-ignore
 import ROSLIB from "roslib";
 import {
-  CameraServoConstrains,
   JoystickConstrains,
   MoveJoystickEvent,
   SpeedConstrains,
 } from "@/common/common_control";
 import { useRos } from "@/context/RosContext";
+import { RESET_INTERVAL_MS } from "@/config";
 
 function SpeedControl() {
   const rosRef = useRef<ROSLIB.Ros | null>(null);
   const speedTopicRef = useRef<ROSLIB.Topic | null>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const { rosUrl } = useRos(); // Use the ROS URL from context
 
   useEffect(() => {
@@ -60,38 +60,46 @@ function SpeedControl() {
     handleJoystick({ linear: 0, angular: 0 });
   }, []);
 
-  const startResetTimer = useCallback(() => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
+  const startResetInterval = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
     }
-    timerRef.current = setTimeout(resetToZero, 500);
+    intervalRef.current = setInterval(resetToZero, RESET_INTERVAL_MS);
   }, [resetToZero]);
 
-  const handleMove = useCallback((data: MoveJoystickEvent) => {
-    let y = data.position.y;
-    y = y - JoystickConstrains.max_down();
-    y = y - JoystickConstrains.y_range() / 2;
-    y = (y * SpeedConstrains.max_speed) / (JoystickConstrains.y_range() / 2);
-
-    let x = data.position.x;
-    x = x - JoystickConstrains.max_left();
-    x = x - JoystickConstrains.x_range() / 2;
-    x =
-      (x * SpeedConstrains.max_angular_speed) /
-      (JoystickConstrains.x_range() / 2);
-
-    handleJoystick({ linear: y, angular: -x });
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
+  const stopResetInterval = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
     }
   }, []);
 
-  const handleStop = useCallback((data: MoveJoystickEvent) => {
-    handleJoystick({ linear: 0, angular: 0 });
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-  }, []);
+  const handleMove = useCallback(
+    (data: MoveJoystickEvent) => {
+      let y = data.position.y;
+      y = y - JoystickConstrains.max_down();
+      y = y - JoystickConstrains.y_range() / 2;
+      y = (y * SpeedConstrains.max_speed) / (JoystickConstrains.y_range() / 2);
+
+      let x = data.position.x;
+      x = x - JoystickConstrains.max_left();
+      x = x - JoystickConstrains.x_range() / 2;
+      x =
+        (x * SpeedConstrains.max_angular_speed) /
+        (JoystickConstrains.x_range() / 2);
+
+      handleJoystick({ linear: y, angular: -x });
+      stopResetInterval();
+    },
+    [stopResetInterval],
+  );
+
+  const handleStop = useCallback(
+    (data: MoveJoystickEvent) => {
+      handleJoystick({ linear: 0, angular: 0 });
+      startResetInterval();
+    },
+    [startResetInterval],
+  );
 
   const handleJoystick = useCallback(
     (data: { linear: number; angular: number }) => {
@@ -123,10 +131,10 @@ function SpeedControl() {
         state === State.FAILED ||
         state === State.CANCELLED
       ) {
-        startResetTimer();
+        startResetInterval();
       }
     },
-    [startResetTimer],
+    [startResetInterval],
   );
 
   return (
