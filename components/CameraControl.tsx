@@ -15,12 +15,13 @@ import {
   CameraServoConstrains,
 } from "@/common/common_control";
 import { useRos } from "@/context/RosContext";
+import { RESET_INTERVAL_MS } from "@/config";
 
 function CameraControl() {
   const rosRef = useRef<ROSLIB.Ros | null>(null);
   const servoS1TopicRef = useRef<ROSLIB.Topic | null>(null);
   const servoS2TopicRef = useRef<ROSLIB.Topic | null>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const { rosUrl } = useRos(); // Use the ROS URL from context
 
   useEffect(() => {
@@ -71,46 +72,54 @@ function CameraControl() {
     });
   }, []);
 
-  const startResetTimer = useCallback(() => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
+  const startResetInterval = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
     }
-    timerRef.current = setTimeout(resetToDefault, 500);
+    intervalRef.current = setInterval(resetToDefault, RESET_INTERVAL_MS);
   }, [resetToDefault]);
 
-  const handleMove = useCallback((data: MoveJoystickEvent) => {
-    let x = data.position.x;
-    x = x - JoystickConstrains.max_left();
-    x =
-      (x * CameraServoConstrains.servo_s1.range()) /
-      JoystickConstrains.x_range();
-    x = x + CameraServoConstrains.servo_s1.min_angle;
-
-    let y = data.position.y;
-    y = y - JoystickConstrains.max_down();
-    y =
-      (y * CameraServoConstrains.servo_s2.range()) /
-      JoystickConstrains.y_range();
-    y = y + CameraServoConstrains.servo_s2.min_angle;
-    if (y < -90) {
-      y = -90;
-    }
-
-    handleJoystick({ x: x, y: y });
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
+  const stopResetInterval = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
     }
   }, []);
 
-  const handleStop = useCallback((data: MoveJoystickEvent) => {
-    handleJoystick({
-      x: data.position.x + CameraServoConstrains.servo_s1.def_angle,
-      y: data.position.y + CameraServoConstrains.servo_s2.def_angle,
-    });
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-  }, []);
+  const handleMove = useCallback(
+    (data: MoveJoystickEvent) => {
+      let x = data.position.x;
+      x = x - JoystickConstrains.max_left();
+      x =
+        (x * CameraServoConstrains.servo_s1.range()) /
+        JoystickConstrains.x_range();
+      x = x + CameraServoConstrains.servo_s1.min_angle;
+
+      let y = data.position.y;
+      y = y - JoystickConstrains.max_down();
+      y =
+        (y * CameraServoConstrains.servo_s2.range()) /
+        JoystickConstrains.y_range();
+      y = y + CameraServoConstrains.servo_s2.min_angle;
+      if (y < -90) {
+        y = -90;
+      }
+
+      handleJoystick({ x: x, y: y });
+      stopResetInterval();
+    },
+    [stopResetInterval],
+  );
+
+  const handleStop = useCallback(
+    (data: MoveJoystickEvent) => {
+      handleJoystick({
+        x: data.position.x + CameraServoConstrains.servo_s1.def_angle,
+        y: data.position.y + CameraServoConstrains.servo_s2.def_angle,
+      });
+      startResetInterval();
+    },
+    [startResetInterval],
+  );
 
   const handleJoystick = useCallback((data: CameraServoPosition) => {
     if (!servoS1TopicRef.current || !servoS2TopicRef.current) {
@@ -141,10 +150,10 @@ function CameraControl() {
         state === State.FAILED ||
         state === State.CANCELLED
       ) {
-        startResetTimer();
+        startResetInterval();
       }
     },
-    [startResetTimer],
+    [startResetInterval],
   );
 
   return (
