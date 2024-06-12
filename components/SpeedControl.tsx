@@ -87,6 +87,13 @@ function SpeedControl() {
         (x * SpeedConstrains.max_angular_speed) /
         (JoystickConstrains.x_range() / 2);
 
+      // Square the values for better control and keep the sign
+      if (x < 0) {
+        x = -(x * x);
+      } else {
+        x = x * x;
+      }
+
       handleJoystick({ linear: y, angular: -x });
       stopResetInterval();
     },
