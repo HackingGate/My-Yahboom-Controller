@@ -1,8 +1,7 @@
-# roslibjs-react-native-demo
+# My Yahboom Controller
 
-A React Native Expo example demonstrating how to use [roslibjs](https://wiki.ros.org/roslibjs).
+A Yahboom MicroROS Pi5 car robot controller built in React Native Expo using ROS client library: [roslibjs](https://wiki.ros.org/roslibjs).
 
-## Screenshot
+## Demo Video
 
-![Screenshot](https://github.com/HackingGate/roslibjs-react-native-demo/raw/main/Screenshot.png)
-
+https://youtu.be/pUTGvqYHX7M
