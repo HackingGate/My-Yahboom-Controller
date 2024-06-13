@@ -65,36 +65,12 @@ export default function VideoScreen() {
 
   return (
     <View style={styles.contentContainer}>
-      {imageData ? (
+      {imageData && (
         <Image
           source={{ uri: imageData }}
           style={styles.video}
           resizeMode="contain"
         />
-      ) : (
-        <View style={styles.placeholder}>
-          <ThemedTextInput
-            style={styles.textInput}
-            value={rosUrl}
-            onChangeText={setRosUrl}
-          />
-          <Button
-            title="Connect"
-            onPress={() => {
-              if (rosRef.current && status !== "Connected") {
-                rosRef.current.connect(rosUrl);
-              }
-            }}
-          />
-          <Button
-            title="Disconnect"
-            onPress={() => {
-              if (rosRef.current && status === "Connected") {
-                rosRef.current.close();
-              }
-            }}
-          />
-        </View>
       )}
     </View>
   );

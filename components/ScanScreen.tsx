@@ -114,6 +114,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.3)",
     justifyContent: "center",
     alignItems: "center",
+    opacity: 0.5,
   },
   scanPoint: {
     position: "absolute",
@@ -136,7 +137,6 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 350,
     height: 275,
-    justifyContent: "center",
     alignItems: "center",
   },
   textInput: {
