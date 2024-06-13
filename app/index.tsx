@@ -33,7 +33,6 @@ const styles = StyleSheet.create({
   },
   cameraControl: {
     opacity: 0.5,
-    flexDirection: "row",
     padding: 10,
     position: "absolute",
     left: 40,
@@ -43,7 +42,6 @@ const styles = StyleSheet.create({
   },
   speedControl: {
     opacity: 0.5,
-    flexDirection: "row",
     padding: 10,
     position: "absolute",
     right: 40,
