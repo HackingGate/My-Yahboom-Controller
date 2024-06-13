@@ -1,5 +1,6 @@
 import { StyleSheet, View } from "react-native";
 import VideoScreen from "@/components/VideoScreen";
+import ScanScreen from "@/components/ScanScreen";
 import { ThemedView } from "@/components/ThemedView";
 import CameraControl from "@/components/CameraControl";
 import SpeedControl from "@/components/SpeedControl";
@@ -11,6 +12,7 @@ export default function MainScreen() {
     <RosProvider>
       <ThemedView style={styles.container}>
         <VideoScreen />
+        <ScanScreen />
         <View style={styles.cameraControl}>
           <CameraControl />
         </View>
