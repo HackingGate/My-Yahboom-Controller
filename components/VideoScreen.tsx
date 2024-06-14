@@ -1,17 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
-import { StyleSheet, View, Button, Image } from "react-native";
+import { StyleSheet, View, Image } from "react-native";
 // @ts-ignore
 import ROSLIB from "roslib";
-import { ThemedTextInput } from "@/components/ThemedTextInput";
 import { useRos } from "@/context/RosContext";
-import { VIDEO_FRAME_RATE_MS } from "@/config";
 
 export default function VideoScreen() {
   const [status, setStatus] = useState("Not connected");
   const [imageData, setImageData] = useState<string | null>(null);
   const rosRef = useRef<ROSLIB.Ros | null>(null);
   const topicRef = useRef<ROSLIB.Topic | null>(null);
-  const lastFrameTimeRef = useRef<number>(0);
   const { rosUrl, setRosUrl } = useRos(); // Use the ROS URL from context
 
   useEffect(() => {
@@ -26,16 +23,11 @@ export default function VideoScreen() {
         ros,
         name: "/compressed_video/webp",
         messageType: "sensor_msgs/CompressedImage",
-        throttle_rate: VIDEO_FRAME_RATE_MS,
       });
 
       topic.subscribe((message: any) => {
-        const currentTime = Date.now();
-        if (currentTime - lastFrameTimeRef.current > VIDEO_FRAME_RATE_MS) {
-          lastFrameTimeRef.current = currentTime;
-          const imageData = "data:image/webp;base64," + message.data;
-          setImageData(imageData);
-        }
+        const imageData = "data:image/webp;base64," + message.data;
+        setImageData(imageData);
       });
 
       topicRef.current = topic;
