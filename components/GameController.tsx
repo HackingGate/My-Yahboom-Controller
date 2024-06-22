@@ -67,25 +67,31 @@ const GameController: React.FC = () => {
     }
   };
 
-  const handleJoystick = ({ x, y }: { x: number; y: number }) => {
+  const handleJoystick = (data: { x: number; y: number }) => {
     if (!servoS1TopicRef.current || !servoS2TopicRef.current) {
       console.log("ROS is not connected.");
       return;
     }
 
+    let x = data.x;
+    x = x + 1;
+    x = (x * CameraServoConstrains.servo_s1.range()) / 2;
+    x = x + CameraServoConstrains.servo_s1.min_angle;
+
     const servoS1Message = new ROSLIB.Message({
-      data: Math.round(
-        (x * CameraServoConstrains.servo_s1.range()) / 2 +
-          CameraServoConstrains.servo_s1.def_angle,
-      ),
+      data: Math.round(x),
     });
     servoS1TopicRef.current.publish(servoS1Message);
 
+    let y = data.y;
+    y = y + 1;
+    y = (y * CameraServoConstrains.servo_s2.range()) / 2;
+    y = y + CameraServoConstrains.servo_s2.min_angle;
+    if (y < -90) {
+      y = -90;
+    }
     const servoS2Message = new ROSLIB.Message({
-      data: Math.round(
-        (y * CameraServoConstrains.servo_s2.range()) / 2 +
-          CameraServoConstrains.servo_s2.def_angle,
-      ),
+      data: Math.round(y),
     });
     servoS2TopicRef.current.publish(servoS2Message);
 
