@@ -4,8 +4,20 @@ const { GameControllerModule } = NativeModules;
 
 const gameControllerEmitter = new NativeEventEmitter(GameControllerModule);
 
-gameControllerEmitter.addListener("onGamepadValueChange", (event) => {
-  console.log("Gamepad Value Changed:", event);
+const checkConnection = async (): Promise<boolean> => {
+  try {
+    const isConnected = await GameControllerModule.checkControllerConnected();
+    console.log("Controller Connected:", isConnected);
+    return isConnected;
+  } catch (error) {
+    console.error("Failed to check controller connection", error);
+    return false;
+  }
+};
+
+gameControllerEmitter.addListener("onGamepadValueChange", async (event) => {
+  // console.log("Gamepad Value Changed:", event);
+  await checkConnection();
   // Face buttons
   if (event.buttonA !== undefined) {
     console.log("ButtonA Value:", event.buttonA);
@@ -80,7 +92,20 @@ const disconnectController = async () => {
   }
 };
 
+const checkControllerConnected = async (): Promise<boolean> => {
+  try {
+    const isConnected = await GameControllerModule.checkControllerConnected();
+    console.log("Controller Connected:", isConnected);
+    return isConnected;
+  } catch (error) {
+    console.error("Failed to check controller connection", error);
+    return false;
+  }
+};
+
 export default {
   connectController,
   disconnectController,
+  checkControllerConnected,
+  gameControllerEmitter,
 };

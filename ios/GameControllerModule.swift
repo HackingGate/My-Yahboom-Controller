@@ -12,6 +12,8 @@ import React
 @objc(GameControllerModule)
 class GameControllerModule: RCTEventEmitter {
 
+  private var isConnected: Bool = false
+
   override static func requiresMainQueueSetup() -> Bool {
     return true
   }
@@ -29,6 +31,13 @@ class GameControllerModule: RCTEventEmitter {
       object: nil
     )
 
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(self.handleControllerDidDisconnect),
+      name: NSNotification.Name.GCControllerDidDisconnect,
+      object: nil
+    )
+
     GCController.startWirelessControllerDiscovery { }
     resolve("Controller discovery started")
   }
@@ -40,17 +49,33 @@ class GameControllerModule: RCTEventEmitter {
       name: NSNotification.Name.GCControllerDidConnect,
       object: nil
     )
+    NotificationCenter.default.removeObserver(
+      self,
+      name: NSNotification.Name.GCControllerDidDisconnect,
+      object: nil
+    )
     GCController.stopWirelessControllerDiscovery()
     resolve("Controller discovery stopped")
+  }
+
+  @objc(checkControllerConnected:rejecter:)
+  func checkControllerConnected(resolve: RCTPromiseResolveBlock, reject: RCTPromiseRejectBlock) {
+    resolve(isConnected)
   }
 
   @objc
   func handleControllerDidConnect(notification: NSNotification) {
     guard let controller = notification.object as? GCController else { return }
+    isConnected = true
     let exGamepad = controller.extendedGamepad
     exGamepad?.valueChangedHandler = { gamepad, element in
       self.handleGamepadValueChange(gamepad: gamepad, element: element)
     }
+  }
+
+  @objc
+  func handleControllerDidDisconnect(notification: NSNotification) {
+    isConnected = false
   }
 
   func handleGamepadValueChange(gamepad: GCExtendedGamepad, element: GCControllerElement) {
