@@ -29,6 +29,7 @@ export default function MainScreen() {
 
     return () => {
       GameController.disconnectController();
+      connectionListener.remove(); // Clean up the event listener
     };
   }, []);
 
@@ -50,6 +51,7 @@ export default function MainScreen() {
             </View>
           </>
         )}
+        <GameController.GameController />
       </ThemedView>
     </RosProvider>
   );
