@@ -6,8 +6,18 @@ import CameraControl from "@/components/CameraControl";
 import SpeedControl from "@/components/SpeedControl";
 import { RosProvider } from "@/context/RosContext";
 import BeepControl from "@/components/BeepControl";
+import GameController from "@/components/GameController";
+import { useEffect } from "react";
 
 export default function MainScreen() {
+  useEffect(() => {
+    GameController.connectController();
+
+    return () => {
+      GameController.disconnectController();
+    };
+  }, []);
+
   return (
     <RosProvider>
       <ThemedView style={styles.container}>
