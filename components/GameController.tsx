@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { NativeEventEmitter, NativeModules } from "react-native";
 // @ts-ignore
 import ROSLIB from "roslib";
 import { useRos } from "@/context/RosContext";
 import { CameraServoConstrains } from "@/common/common_control";
+import { RESET_AND_SYNC_INTERVAL_MS } from "@/config";
 
 const { GameControllerModule } = NativeModules;
 
@@ -15,6 +16,8 @@ const GameController: React.FC = () => {
   const rosRef = useRef<ROSLIB.Ros | null>(null);
   const servoS1TopicRef = useRef<ROSLIB.Topic | null>(null);
   const servoS2TopicRef = useRef<ROSLIB.Topic | null>(null);
+  const rightThumbstickRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const ros = new ROSLIB.Ros();
@@ -67,6 +70,29 @@ const GameController: React.FC = () => {
     }
   };
 
+  const syncToController = useCallback(() => {
+    handleJoystick({
+      x: rightThumbstickRef.current.x,
+      y: rightThumbstickRef.current.y,
+    });
+  }, []);
+
+  const startSyncInterval = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    intervalRef.current = setInterval(
+      syncToController,
+      RESET_AND_SYNC_INTERVAL_MS,
+    );
+  }, [syncToController]);
+
+  const stopSyncInterval = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+  }, []);
+
   const handleJoystick = (data: { x: number; y: number }) => {
     if (!servoS1TopicRef.current || !servoS2TopicRef.current) {
       console.log("ROS is not connected.");
@@ -103,10 +129,16 @@ const GameController: React.FC = () => {
     const handleGamepadValueChange = async (event: any) => {
       await checkConnection();
 
+      startSyncInterval();
+
       if (
         event.rightThumbstickX !== undefined ||
         event.rightThumbstickY !== undefined
       ) {
+        rightThumbstickRef.current = {
+          x: event.rightThumbstickX,
+          y: event.rightThumbstickY,
+        };
         handleJoystick({
           x: event.rightThumbstickX,
           y: event.rightThumbstickY,

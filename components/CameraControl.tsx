@@ -15,7 +15,7 @@ import {
   CameraServoConstrains,
 } from "@/common/common_control";
 import { useRos } from "@/context/RosContext";
-import { RESET_INTERVAL_MS } from "@/config";
+import { RESET_AND_SYNC_INTERVAL_MS } from "@/config";
 
 function CameraControl() {
   const rosRef = useRef<ROSLIB.Ros | null>(null);
@@ -76,7 +76,10 @@ function CameraControl() {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
-    intervalRef.current = setInterval(resetToDefault, RESET_INTERVAL_MS);
+    intervalRef.current = setInterval(
+      resetToDefault,
+      RESET_AND_SYNC_INTERVAL_MS,
+    );
   }, [resetToDefault]);
 
   const stopResetInterval = useCallback(() => {
