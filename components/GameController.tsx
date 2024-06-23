@@ -24,6 +24,8 @@ const GameController: React.FC = () => {
   const leftTriggerRef = useRef<number>(0);
   const rightTriggerRef = useRef<number>(0);
   const leftThumbstickRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const rightShoulderRef = useRef<number>(0);
+  const leftShoulderRef = useRef<number>(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -100,10 +102,12 @@ const GameController: React.FC = () => {
       rightThumbstickButtonRef.current || leftThumbstickButtonRef.current,
     );
     const linear = rightTriggerRef.current - leftTriggerRef.current;
-    const angular = -leftThumbstickRef.current.x * linear * 9;
+    const angularByShoulder =
+      -(rightShoulderRef.current - leftShoulderRef.current) * 3.0;
+    const angularByLeftThumbstick = -leftThumbstickRef.current.x * linear * 6.0;
     handleSpeed({
       linear: linear,
-      angular: angular,
+      angular: angularByShoulder + angularByLeftThumbstick,
     });
   }, []);
 
@@ -235,16 +239,29 @@ const GameController: React.FC = () => {
       }
 
       if (
+        event.rightShoulder !== undefined ||
+        event.leftShoulder !== undefined
+      ) {
+        rightShoulderRef.current = event.rightShoulder || 0;
+        leftShoulderRef.current = event.leftShoulder || 0;
+      }
+
+      if (
         event.rightTrigger !== undefined ||
         event.leftTrigger !== undefined ||
         event.leftThumbstickX !== undefined ||
-        event.leftThumbstickY !== undefined
+        event.leftThumbstickY !== undefined ||
+        event.rightShoulder !== undefined ||
+        event.leftShoulder !== undefined
       ) {
         const linear = rightTriggerRef.current - leftTriggerRef.current;
-        const angular = -leftThumbstickRef.current.x * linear * 9;
+        const angularByShoulder =
+          -(rightShoulderRef.current - leftShoulderRef.current) * 3.0;
+        const angularByLeftThumbstick =
+          -leftThumbstickRef.current.x * linear * 6.0;
         handleSpeed({
           linear: linear,
-          angular: angular,
+          angular: angularByShoulder + angularByLeftThumbstick,
         });
       }
 
