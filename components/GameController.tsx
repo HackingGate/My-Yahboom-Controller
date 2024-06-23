@@ -20,6 +20,10 @@ const GameController: React.FC = () => {
   const rightThumbstickRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const rightThumbstickButtonRef = useRef<number>(0);
   const leftThumbstickButtonRef = useRef<number>(0);
+  const speedTopicRef = useRef<ROSLIB.Topic | null>(null);
+  const leftTriggerRef = useRef<number>(0);
+  const rightTriggerRef = useRef<number>(0);
+  const leftThumbstickRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -46,9 +50,16 @@ const GameController: React.FC = () => {
         messageType: "std_msgs/UInt16",
       });
 
+      const speedTopic = new ROSLIB.Topic({
+        ros,
+        name: "/cmd_vel",
+        messageType: "geometry_msgs/Twist",
+      });
+
       servoS1TopicRef.current = servoS1Topic;
       servoS2TopicRef.current = servoS2Topic;
       beepTopicRef.current = beepTopic;
+      speedTopicRef.current = speedTopic;
     });
 
     ros.on("error", (error: any) => {
@@ -81,13 +92,19 @@ const GameController: React.FC = () => {
   };
 
   const syncToController = useCallback(() => {
-    handleJoystick({
+    handleCamera({
       x: rightThumbstickRef.current.x,
       y: rightThumbstickRef.current.y,
     });
     handleBeep(
       rightThumbstickButtonRef.current || leftThumbstickButtonRef.current,
     );
+    const linear = rightTriggerRef.current - leftTriggerRef.current;
+    const angular = -leftThumbstickRef.current.x * linear * 9;
+    handleSpeed({
+      linear: linear,
+      angular: angular,
+    });
   }, []);
 
   const startSyncInterval = useCallback(() => {
@@ -106,7 +123,7 @@ const GameController: React.FC = () => {
     }
   }, []);
 
-  const handleJoystick = (data: { x: number; y: number }) => {
+  const handleCamera = (data: { x: number; y: number }) => {
     if (!servoS1TopicRef.current || !servoS2TopicRef.current) {
       console.log("ROS is not connected.");
       return;
@@ -152,6 +169,24 @@ const GameController: React.FC = () => {
     console.log(`Published to /beep: ${beepMessage.data}`);
   }, []);
 
+  const handleSpeed = (data: { linear: number; angular: number }) => {
+    if (!speedTopicRef.current) {
+      console.log("ROS is not connected.");
+      return;
+    }
+
+    const speedMessage = new ROSLIB.Message({
+      linear: { x: data.linear, y: 0.0, z: 0.0 },
+      angular: { x: 0.0, y: 0.0, z: data.angular },
+    });
+
+    speedTopicRef.current.publish(speedMessage);
+
+    console.log(
+      `Published to /cmd_vel: linear=${data.linear}, angular=${data.angular}`,
+    );
+  };
+
   useEffect(() => {
     const handleGamepadValueChange = async (event: any) => {
       await checkConnection();
@@ -166,7 +201,7 @@ const GameController: React.FC = () => {
           x: event.rightThumbstickX,
           y: event.rightThumbstickY,
         };
-        handleJoystick({
+        handleCamera({
           x: event.rightThumbstickX,
           y: event.rightThumbstickY,
         });
@@ -179,6 +214,38 @@ const GameController: React.FC = () => {
         rightThumbstickButtonRef.current = event.rightThumbstickButton;
         leftThumbstickButtonRef.current = event.leftThumbstickButton;
         handleBeep(event.rightThumbstickButton || event.leftThumbstickButton);
+      }
+
+      if (event.rightTrigger !== undefined) {
+        rightTriggerRef.current = event.rightTrigger;
+      }
+
+      if (event.leftTrigger !== undefined) {
+        leftTriggerRef.current = event.leftTrigger;
+      }
+
+      if (
+        event.leftThumbstickX !== undefined ||
+        event.leftThumbstickY !== undefined
+      ) {
+        leftThumbstickRef.current = {
+          x: event.leftThumbstickX,
+          y: event.leftThumbstickY,
+        };
+      }
+
+      if (
+        event.rightTrigger !== undefined ||
+        event.leftTrigger !== undefined ||
+        event.leftThumbstickX !== undefined ||
+        event.leftThumbstickY !== undefined
+      ) {
+        const linear = rightTriggerRef.current - leftTriggerRef.current;
+        const angular = -leftThumbstickRef.current.x * linear * 9;
+        handleSpeed({
+          linear: linear,
+          angular: angular,
+        });
       }
 
       // Other event handling can remain the same
