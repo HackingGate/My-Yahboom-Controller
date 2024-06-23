@@ -16,7 +16,10 @@ const GameController: React.FC = () => {
   const rosRef = useRef<ROSLIB.Ros | null>(null);
   const servoS1TopicRef = useRef<ROSLIB.Topic | null>(null);
   const servoS2TopicRef = useRef<ROSLIB.Topic | null>(null);
+  const beepTopicRef = useRef<ROSLIB.Topic | null>(null);
   const rightThumbstickRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const rightThumbstickButtonRef = useRef<number>(0);
+  const leftThumbstickButtonRef = useRef<number>(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -37,8 +40,15 @@ const GameController: React.FC = () => {
         messageType: "std_msgs/Int32",
       });
 
+      const beepTopic = new ROSLIB.Topic({
+        ros,
+        name: "/beep",
+        messageType: "std_msgs/UInt16",
+      });
+
       servoS1TopicRef.current = servoS1Topic;
       servoS2TopicRef.current = servoS2Topic;
+      beepTopicRef.current = beepTopic;
     });
 
     ros.on("error", (error: any) => {
@@ -75,6 +85,9 @@ const GameController: React.FC = () => {
       x: rightThumbstickRef.current.x,
       y: rightThumbstickRef.current.y,
     });
+    handleBeep(
+      rightThumbstickButtonRef.current || leftThumbstickButtonRef.current,
+    );
   }, []);
 
   const startSyncInterval = useCallback(() => {
@@ -125,6 +138,20 @@ const GameController: React.FC = () => {
     console.log(`Published to /servo_s2: ${servoS2Message.data}`);
   };
 
+  const handleBeep = useCallback((duration: number) => {
+    if (!beepTopicRef.current) {
+      console.log("ROS is not connected.");
+      return;
+    }
+
+    const beepMessage = new ROSLIB.Message({
+      data: duration,
+    });
+    beepTopicRef.current.publish(beepMessage);
+
+    console.log(`Published to /beep: ${beepMessage.data}`);
+  }, []);
+
   useEffect(() => {
     const handleGamepadValueChange = async (event: any) => {
       await checkConnection();
@@ -143,6 +170,15 @@ const GameController: React.FC = () => {
           x: event.rightThumbstickX,
           y: event.rightThumbstickY,
         });
+      }
+
+      if (
+        event.rightThumbstickButton !== undefined ||
+        event.leftThumbstickButton !== undefined
+      ) {
+        rightThumbstickButtonRef.current = event.rightThumbstickButton;
+        leftThumbstickButtonRef.current = event.leftThumbstickButton;
+        handleBeep(event.rightThumbstickButton || event.leftThumbstickButton);
       }
 
       // Other event handling can remain the same
