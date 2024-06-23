@@ -14,7 +14,7 @@ import {
   SpeedConstrains,
 } from "@/common/common_control";
 import { useRos } from "@/context/RosContext";
-import { RESET_INTERVAL_MS } from "@/config";
+import { RESET_AND_SYNC_INTERVAL_MS } from "@/config";
 
 function SpeedControl() {
   const rosRef = useRef<ROSLIB.Ros | null>(null);
@@ -64,7 +64,7 @@ function SpeedControl() {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
-    intervalRef.current = setInterval(resetToZero, RESET_INTERVAL_MS);
+    intervalRef.current = setInterval(resetToZero, RESET_AND_SYNC_INTERVAL_MS);
   }, [resetToZero]);
 
   const stopResetInterval = useCallback(() => {

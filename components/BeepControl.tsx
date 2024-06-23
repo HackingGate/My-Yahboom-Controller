@@ -8,7 +8,7 @@ import {
 // @ts-ignore
 import ROSLIB from "roslib";
 import { useRos } from "@/context/RosContext";
-import { RESET_INTERVAL_MS } from "@/config";
+import { RESET_AND_SYNC_INTERVAL_MS } from "@/config";
 
 function BeepControl() {
   const rosRef = useRef<ROSLIB.Ros | null>(null);
@@ -69,7 +69,10 @@ function BeepControl() {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
     }
-    intervalRef.current = setInterval(() => handleBeep(0), RESET_INTERVAL_MS);
+    intervalRef.current = setInterval(
+      () => handleBeep(0),
+      RESET_AND_SYNC_INTERVAL_MS,
+    );
   }, [handleBeep]);
 
   const stopResetInterval = useCallback(() => {

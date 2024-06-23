@@ -6,22 +6,52 @@ import CameraControl from "@/components/CameraControl";
 import SpeedControl from "@/components/SpeedControl";
 import { RosProvider } from "@/context/RosContext";
 import BeepControl from "@/components/BeepControl";
+import GameController from "@/components/GameController";
+import { useEffect, useState } from "react";
 
 export default function MainScreen() {
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+
+  useEffect(() => {
+    GameController.connectController();
+
+    const checkConnection = async () => {
+      const connected = await GameController.checkControllerConnected();
+      setIsConnected(connected);
+    };
+
+    checkConnection();
+
+    const connectionListener = GameController.gameControllerEmitter.addListener(
+      "onGamepadValueChange",
+      checkConnection,
+    );
+
+    return () => {
+      GameController.disconnectController();
+      connectionListener.remove(); // Clean up the event listener
+    };
+  }, []);
+
   return (
     <RosProvider>
       <ThemedView style={styles.container}>
         <VideoScreen />
         <ScanScreen />
-        <View style={styles.cameraControl}>
-          <CameraControl />
-        </View>
-        <View style={styles.speedControl}>
-          <SpeedControl />
-        </View>
-        <View style={styles.beepControl}>
-          <BeepControl />
-        </View>
+        {!isConnected && (
+          <>
+            <View style={styles.cameraControl}>
+              <CameraControl />
+            </View>
+            <View style={styles.speedControl}>
+              <SpeedControl />
+            </View>
+            <View style={styles.beepControl}>
+              <BeepControl />
+            </View>
+          </>
+        )}
+        <GameController.GameController />
       </ThemedView>
     </RosProvider>
   );
